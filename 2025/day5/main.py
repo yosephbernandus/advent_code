@@ -1,29 +1,59 @@
-with open("input.txt", "r") as f:
-    content = f.read()
+# with open("input.txt", "r") as f:
+#     content = f.read()
+#
+# # Split by blank line
+# parts = content.strip().split("\n\n")
+# range_lines = parts[0].split("\n")
+# id_lines = parts[1].split("\n")
+#
+# # Parse ranges
+# ranges = []
+# for line in range_lines:
+#     start, end = map(int, line.split("-"))
+#     ranges.append((start, end))
+#
+# # Parse available IDs
+# available_ids = [int(line) for line in id_lines]
+#
+# # Count fresh IDs
+# fresh_count = 0
+# for id_val in available_ids:
+#     is_fresh = False
+#     for start, end in ranges:
+#         if start <= id_val <= end:
+#             is_fresh = True
+#             break
+#     if is_fresh:
+#         fresh_count += 1
+#
+# print(fresh_count)
 
-# Split by blank line
-parts = content.strip().split("\n\n")
-range_lines = parts[0].split("\n")
-id_lines = parts[1].split("\n")
+
+# part 2
+with open("input.txt", "r") as f:
+    lines = [line.strip() for line in f]
 
 # Parse ranges
 ranges = []
-for line in range_lines:
-    start, end = map(int, line.split("-"))
-    ranges.append((start, end))
+for line in lines:
+    if not line:
+        break
+    if "-" in line:
+        start, end = map(int, line.split("-"))
+        ranges.append((start, end))
 
-# Parse available IDs
-available_ids = [int(line) for line in id_lines]
+# Sort by start position
+ranges.sort()
 
-# Count fresh IDs
-fresh_count = 0
-for id_val in available_ids:
-    is_fresh = False
-    for start, end in ranges:
-        if start <= id_val <= end:
-            is_fresh = True
-            break
-    if is_fresh:
-        fresh_count += 1
+# Merge overlapping ranges
+merged = []
+for start, end in ranges:
+    if merged and start <= merged[-1][1] + 1:
+        # Overlapping or adjacent - merge
+        merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+    else:
+        merged.append((start, end))
 
-print(fresh_count)
+# Count total IDs in merged ranges
+count = sum(end - start + 1 for start, end in merged)
+print(count)
