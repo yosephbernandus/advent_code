@@ -106,12 +106,8 @@ int main() {
     printf("Sorting distances...\n");
     qsort(edges, num_edges, sizeof(Edge), compare_edges);
 
-    // Process the 1000 shortest pairs
-    int pairs_to_process = 1000;
-    if (pairs_to_process > num_edges) {
-        pairs_to_process = num_edges;
-    }
-    printf("Processing %d shortest pairs\n", pairs_to_process);
+    // Continue connecting until all junction boxes are in one circuit
+    printf("Connecting until all junction boxes are in one circuit...\n");
 
     // Union-Find initialization
     int *parent = malloc(n * sizeof(int));
@@ -126,69 +122,47 @@ int main() {
         parent[i] = i;
     }
 
-    // Process pairs
-    for (int i = 0; i < pairs_to_process; i++) {
-        union_sets(parent, edges[i].i, edges[i].j);
-    }
+    int components = n;
+    int last_i = -1, last_j = -1;
+    int found = 0;
 
-    // Count component sizes
-    int *component_sizes = malloc(n * sizeof(int));
-    int *component_count = malloc(n * sizeof(int));
-    if (!component_sizes || !component_count) {
-        printf("Memory allocation failed for component arrays\n");
-        free(points);
-        free(edges);
-        free(parent);
-        return 1;
-    }
-
-    // Initialize component counts
-    for (int i = 0; i < n; i++) {
-        component_count[i] = 0;
-    }
-
-    // Count components
-    for (int i = 0; i < n; i++) {
-        int root = find(parent, i);
-        component_count[root]++;
-    }
-
-    // Extract non-zero component sizes
-    int num_components = 0;
-    for (int i = 0; i < n; i++) {
-        if (component_count[i] > 0) {
-            component_sizes[num_components++] = component_count[i];
+    for (int i = 0; i < num_edges; i++) {
+        int root_i = find(parent, edges[i].i);
+        int root_j = find(parent, edges[i].j);
+        
+        if (root_i != root_j) {
+            union_sets(parent, edges[i].i, edges[i].j);
+            components--;
+            if (components == 1) {
+                last_i = edges[i].i;
+                last_j = edges[i].j;
+                found = 1;
+                break;
+            }
         }
     }
 
-    // Sort component sizes in descending order
-    qsort(component_sizes, num_components, sizeof(int), compare_ints);
-
-    printf("Number of components: %d\n", num_components);
-    printf("Top 5 component sizes: ");
-    for (int i = 0; i < 5 && i < num_components; i++) {
-        printf("%d ", component_sizes[i]);
-    }
-    printf("\n");
-
-    // Calculate result
-    if (num_components >= 3) {
-        long long result = (long long)component_sizes[0] * 
-                          component_sizes[1] * 
-                          component_sizes[2];
-        printf("Answer: %d * %d * %d = %lld\n", 
-               component_sizes[0], component_sizes[1], 
-               component_sizes[2], result);
+    if (found) {
+        int x1 = points[last_i].x;
+        int y1 = points[last_i].y;
+        int z1 = points[last_i].z;
+        int x2 = points[last_j].x;
+        int y2 = points[last_j].y;
+        int z2 = points[last_j].z;
+        
+        long long result = (long long)x1 * x2;
+        printf("Final connection: box %d (%d,%d,%d) and box %d (%d,%d,%d)\n",
+               last_i, x1, y1, z1, last_j, x2, y2, z2);
+        printf("X coordinates: %d * %d = %lld\n", x1, x2, result);
+        printf("\nAnswer: %lld\n", result);
     } else {
-        printf("Not enough components!\n");
+        printf("No final connection found!\n");
     }
 
     // Clean up
     free(points);
     free(edges);
     free(parent);
-    free(component_sizes);
-    free(component_count);
 
     return 0;
 }

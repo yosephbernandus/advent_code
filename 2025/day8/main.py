@@ -42,24 +42,28 @@ target_connections = 1000
 
 print(f"Target connections: {target_connections}")
 
-# Process the 1000 shortest pairs (regardless of whether they're already connected)
-pairs_to_process = min(1000, len(edges))
-print(f"Processing {pairs_to_process} shortest pairs")
+# Continue connecting until all junction boxes are in one circuit
+print("Connecting until all junction boxes are in one circuit...")
 
-for i in range(pairs_to_process):
-    dist, j, k = edges[i]
-    union(j, k)  # Try to connect, even if already connected
+last_connection = None
+components = n
 
-# Count component sizes
-sizes = sorted(Counter(find(i) for i in range(n)).values(), reverse=True)
+for dist, i, j in edges:
+    if union(i, j):
+        components -= 1
+        if components == 1:
+            last_connection = (i, j)
+            break
 
-print(f"Number of components: {len(sizes)}")
-print(f"Top 5 component sizes: {sizes[:5]}")
+if last_connection:
+    i, j = last_connection
+    x1, y1, z1 = boxes[i]
+    x2, y2, z2 = boxes[j]
+    result = x1 * x2
+    print(f"Final connection: box {i} ({x1},{y1},{z1}) and box {j} ({x2},{y2},{z2})")
+    print(f"X coordinates: {x1} * {x2} = {result}")
+else:
+    print("No final connection found!")
+    result = 0
 
-# If we have fewer than 3 components, pad with size 1 (isolated boxes)
-while len(sizes) < 3:
-    sizes.append(1)
-
-# Answer
-result = sizes[0] * sizes[1] * sizes[2]
 print(f"\nAnswer: {result}")

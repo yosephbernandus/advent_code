@@ -71,27 +71,34 @@ func main() {
 		parent[i] = i
 	}
 
-	// Process the 1000 shortest pairs
-	pairsToProcess := 1000
-	if pairsToProcess > len(edges) {
-		pairsToProcess = len(edges)
+	// Continue connecting until all junction boxes are in one circuit
+	fmt.Println("Connecting until all junction boxes are in one circuit...")
+
+	components := n
+	var lastConnection [2]int
+	found := false
+
+	for _, edge := range edges {
+		if union(edge.i, edge.j) {
+			components--
+			if components == 1 {
+				lastConnection = [2]int{edge.i, edge.j}
+				found = true
+				break
+			}
+		}
 	}
 
-	for i := 0; i < pairsToProcess; i++ {
-		union(edges[i].i, edges[i].j) // Try to connect, even if already connected
+	if found {
+		i, j := lastConnection[0], lastConnection[1]
+		x1, y1, z1 := boxes[i][0], boxes[i][1], boxes[i][2]
+		x2, y2, z2 := boxes[j][0], boxes[j][1], boxes[j][2]
+		result := x1 * x2
+		fmt.Printf("Final connection: box %d (%d,%d,%d) and box %d (%d,%d,%d)\n",
+			i, x1, y1, z1, j, x2, y2, z2)
+		fmt.Printf("X coordinates: %d * %d = %d\n", x1, x2, result)
+		fmt.Printf("\nAnswer: %d\n", result)
+	} else {
+		fmt.Println("No final connection found!")
 	}
-
-	// Count sizes
-	compSize := make(map[int]int)
-	for i := 0; i < n; i++ {
-		compSize[find(i)]++
-	}
-
-	var sizes []int
-	for _, size := range compSize {
-		sizes = append(sizes, size)
-	}
-	sort.Sort(sort.Reverse(sort.IntSlice(sizes)))
-
-	fmt.Println(sizes[0] * sizes[1] * sizes[2])
 }
